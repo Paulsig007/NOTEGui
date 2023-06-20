@@ -16,49 +16,30 @@ app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "/public/index.html"))
 );
 
-app.get("/notes", (req, res) =>
+app.get("/api/notes", (req, res) =>
   res.sendFile(path.join(__dirname, "/public/notes.html"))
 );
 
-app.post("/notes", (req, res) => {
+app.post("/api/notes", (req, res) => {
   console.info(`${req.method} request received to add a note`);
 
-  const { title, text } = req.body;
+  fs.readFile("./db/db.json", "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(req.body);
+      const parsedNotes = JSON.parse(data);
+      const newNote = req.body;
+      req.body.id = parsedNotes.length + 1;
+      parsedNotes.push(newNote);
 
-  if (title && text) {
-    const newNote = {
-      title,
-      text,
-      id: uuidv4(),
-    };
-
-    fs.readFile("./db.json", "utf8", (err, data) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log(req.body);
-        const parsedNotes = JSON.parse();
-        parsedNotes.push(newNote);
-
-        fs.writeFile(
-          ".db.json",
-          JSON.stringify(parsedNotes, null, 4),
-          (writeErr) =>
-            writeErr
-              ? console.error(writeErr)
-              : console.info("Successfully updated notes!")
-        );
-      }
-    });
-    const response = {
-      status: "success",
-      body: newNote,
-    };
-    console.log(response);
-    res.status(201).json(response);
-  } else {
-    res.status(500).json("Error in posting review");
-  }
+      fs.writeFile("./db/db.json", JSON.stringify(parsedNotes), (writeErr) =>
+        writeErr
+          ? console.error(writeErr)
+          : console.info("Successfully updated notes!")
+      );
+    }
+  });
 });
 
 app.listen(PORT, () =>
